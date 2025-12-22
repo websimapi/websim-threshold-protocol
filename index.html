@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Threshold Protocol</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://esm.sh/three@0.160.0",
+                "nipplejs": "https://esm.sh/nipplejs"
+            }
+        }
+    </script>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <div class="logo">THRESHOLD<span>.PROTOCOL</span></div>
+            <div class="connection-status">
+                <span id="role-indicator">DETECTING ROLE...</span>
+                <span id="peer-count">0 PEERS</span>
+                <div class="status-light" id="conn-light"></div>
+            </div>
+        </header>
+
+        <main>
+            <!-- Host UI: Visible only to room creator (client ID match or first join) -->
+            <section id="host-panel" class="panel hidden">
+                <div class="panel-header">
+                    <h2>HOST CONSOLE</h2>
+                    <div class="epoch-display">EPOCH: <span id="epoch-val">0</span></div>
+                </div>
+                
+                <div class="step" id="step-setup">
+                    <h3>1. DEFINE SECRET</h3>
+                    <p class="desc">Enter an API Key or Secret. It will be encrypted and the key split among peers.</p>
+                    <div class="input-group">
+                        <input type="password" id="secret-input" placeholder="sk-..." autocomplete="off">
+                        <input type="text" id="target-url" placeholder="Target Endpoint (e.g. https://api.openai.com/v1/models)" value="https://httpbin.org/post">
+                    </div>
+                    
+                    <div class="slider-group">
+                        <label>Threshold (T): <span id="threshold-val">2</span></label>
+                        <input type="range" id="threshold-range" min="1" max="5" value="2">
+                        <p class="tiny">Minimum peers required to authorize execution.</p>
+                    </div>
+
+                    <button id="btn-lock" class="btn-primary">
+                        <span class="icon">🔒</span> LOCK & DISTRIBUTE
+                    </button>
+                </div>
+
+                <div class="step disabled" id="step-execute">
+                    <h3>2. EXECUTION</h3>
+                    <p class="desc">Secret is locked. Request peer authorization to reconstruct and execute.</p>
+                    
+                    <div class="monitor">
+                        <div class="monitor-row">
+                            <span>Encrypted Blob:</span>
+                            <span class="mono ok">STORED</span>
+                        </div>
+                        <div class="monitor-row">
+                            <span>Key Status:</span>
+                            <span class="mono danger">SHREDDED</span>
+                        </div>
+                        <div class="monitor-row">
+                            <span>Shares Distributed:</span>
+                            <span id="shares-count" class="mono">0</span>
+                        </div>
+                    </div>
+
+                    <button id="btn-request" class="btn-warning">
+                        <span class="icon">⚡</span> REQUEST AUTHORIZATION & EXECUTE
+                    </button>
+                </div>
+            </section>
+
+            <!-- Peer UI: Visible to everyone else -->
+            <section id="peer-panel" class="panel hidden">
+                <div class="panel-header">
+                    <h2>PEER NODE</h2>
+                    <div class="id-badge" id="my-peer-id">...</div>
+                </div>
+
+                <div class="status-card">
+                    <div class="status-icon" id="peer-icon">🛡️</div>
+                    <h3 id="peer-status-text">STANDING BY</h3>
+                    <p id="peer-detail">Waiting for host to distribute keys.</p>
+                </div>
+
+                <div id="auth-request-modal" class="modal hidden">
+                    <div class="modal-content warning-border">
+                        <h3>AUTHORIZATION REQUEST</h3>
+                        <p>Host requesting secret reconstruction.</p>
+                        <div class="meta-data">
+                            <span>Reason:</span> API Execution<br>
+                            <span>Timestamp:</span> <span id="req-time"></span>
+                        </div>
+                        <div class="actions">
+                            <button id="btn-deny" class="btn-danger">DENY</button>
+                            <button id="btn-approve" class="btn-success">APPROVE & SEND SHARE</button>
+                        </div>
+                        <div class="auto-timer-bar"><div id="timer-fill"></div></div>
+                        <p class="tiny">Auto-approving in 5s...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Log Console -->
+            <section class="console">
+                <div class="console-header">SYSTEM LOG</div>
+                <div id="system-log" class="console-body">
+                    <div class="log-entry">System initialized.</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script type="module" src="app.js"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"4c6229722a6346bc8eb5cb0e5eae5d41","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
+
