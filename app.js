@@ -38,12 +38,15 @@ async function init() {
     connLight.classList.add('connected');
     
     // Determine Role: If room state is empty, become Host. Otherwise Peer.
-    // This is a naive leadership election for the demo.
-    if (!lobby.state || !lobby.state.hostId) {
+    // Robust leadership election: Check if stored host is actually online.
+    const currentHostId = lobby.state ? lobby.state.hostId : null;
+    const hostIsOnline = currentHostId && (lobby.peers.includes(currentHostId) || currentHostId === lobby.clientId);
+
+    if (!currentHostId || !hostIsOnline) {
         log("No active host detected. Assuming HOST role.", 'warn');
         role = 'HOST';
-        lobby.updateRoomState({ hostId: lobby.clientId, epoch: 1 });
-    } else if (lobby.state.hostId === lobby.clientId) {
+        lobby.updateRoomState({ hostId: lobby.clientId, epoch: (lobby.state?.epoch || 0) + 1 });
+    } else if (currentHostId === lobby.clientId) {
         role = 'HOST';
     } else {
         role = 'PEER';
@@ -52,6 +55,14 @@ async function init() {
 
     updateUI();
     setupHandlers();
+
+    // Initial sync
+    lobby.poll();
+
+    // Polling loop to catch any missed presence updates
+    setInterval(() => {
+        lobby.poll();
+    }, 1500);
 }
 
 function updateUI() {

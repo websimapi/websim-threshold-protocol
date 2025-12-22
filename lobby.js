@@ -12,6 +12,9 @@ export class Lobby {
         await this.room.initialize();
         this.clientId = this.room.clientId;
         
+        // Initial sync
+        this.refreshPeers();
+
         this.room.onmessage = (event) => {
             const msg = event.data;
             if (this.handlers[msg.type]) {
@@ -21,10 +24,7 @@ export class Lobby {
 
         // Track peers
         this.room.subscribePresence((presence) => {
-            this.peers = Object.keys(presence).filter(id => id !== this.clientId);
-            if (this.handlers['presence_change']) {
-                this.handlers['presence_change'](this.peers);
-            }
+            this.refreshPeers();
         });
 
         // Use room state for epoch tracking
@@ -33,6 +33,26 @@ export class Lobby {
                 this.handlers['state_change'](state);
             }
         });
+    }
+
+    refreshPeers() {
+        if (!this.room.peers) return;
+        const newPeers = Object.keys(this.room.peers).filter(id => id !== this.clientId);
+        
+        // Check for changes to avoid unnecessary UI updates
+        const changed = newPeers.length !== this.peers.length || 
+                       !newPeers.every(p => this.peers.includes(p));
+
+        if (changed) {
+            this.peers = newPeers;
+            if (this.handlers['presence_change']) {
+                this.handlers['presence_change'](this.peers);
+            }
+        }
+    }
+
+    poll() {
+        this.refreshPeers();
     }
 
     on(type, callback) {
