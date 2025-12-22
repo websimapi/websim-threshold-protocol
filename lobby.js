@@ -89,6 +89,10 @@ export class Lobby {
     updateRoomState(update) {
         this.room.updateRoomState(update);
     }
+
+    updatePresence(update) {
+        this.room.updatePresence(update);
+    }
     
     get state() {
         return this.room.roomState;

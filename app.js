@@ -59,10 +59,21 @@ async function init() {
     // Initial sync
     lobby.poll();
 
+    // Explicitly announce presence to ensure host discovers us
+    lobby.updatePresence({ role: role, status: 'online' });
+
     // Polling loop to catch any missed presence updates
     setInterval(() => {
         lobby.poll();
     }, 1500);
+}
+
+function updatePeerCount(peers) {
+    peerCountEl.textContent = `${peers.length} PEERS`;
+    const range = document.getElementById('threshold-range');
+    if (role === 'HOST' && range) {
+        range.max = Math.max(2, peers.length);
+    }
 }
 
 function updateUI() {
@@ -75,15 +86,14 @@ function updateUI() {
         peerPanel.classList.remove('hidden');
         document.getElementById('my-peer-id').textContent = lobby.clientId.substr(0, 8);
     }
+    // Sync peer count immediately to handle initial state
+    updatePeerCount(lobby.peers);
 }
 
 function setupHandlers() {
     // Connection Logic
     lobby.on('presence_change', (peers) => {
-        peerCountEl.textContent = `${peers.length} PEERS`;
-        if (role === 'HOST') {
-            document.getElementById('threshold-range').max = Math.max(2, peers.length);
-        }
+        updatePeerCount(peers);
     });
 
     lobby.on('state_change', (state) => {
